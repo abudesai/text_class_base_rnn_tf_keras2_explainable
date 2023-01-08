@@ -33,10 +33,8 @@ class RNN_pretrained_embed():
                    Recall()
                    ]
         
-        text_vectorizer = prep_TEXT.load_text_vectorizer()
-        
+        text_vectorizer = prep_TEXT.load_text_vectorizer()        
         max_vocab_length = len(text_vectorizer.get_vocabulary())
-
         max_length = len(tf.squeeze(text_vectorizer(["dsads"]))) #We defined output lenght during preprocessing, now getting it for embedding layer
 
         embed_layer = Embedding(input_dim=max_vocab_length, # set input shape
@@ -65,16 +63,15 @@ class RNN_pretrained_embed():
             model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
         return model
 
-    def fit(self, x_train, y_train, x_val=None, y_val=None,call_backs=[],
+    def fit(self, x_train, y_train, x_val=None, y_val=None, 
             epochs=10,
-            num_layers=2,
+            num_layers=1,
             neurons_num=50,
             embed_lay_output=120,
             learning_rate=1e-2,
             ):
-        num_classes = len(np.unique(y_train))
 
-        
+        num_classes = len(np.unique(y_train))        
 
         self.model = self.__build_model_compile(
             num_y_classes=num_classes, num_layers=num_layers,
@@ -90,10 +87,10 @@ class RNN_pretrained_embed():
         # Kindly change patience as you see fit in your project
         callbacks.append(
             tf.keras.callbacks.EarlyStopping(
-                patience=3,
+                monitor="loss" if x_val is None else "val_loss",
+                patience=2,
                 verbose=1,
-                restore_best_weights=True,
-                monitor="loss" if x_val is None else "val_loss"
+                restore_best_weights=True
                 )
             ) 
 
