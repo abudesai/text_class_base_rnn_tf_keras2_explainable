@@ -248,6 +248,23 @@ class prep_NUMERIC():
         return encoded_data
 
     @classmethod
+    def get_Label_Encoder(self,col_name=None, artifacts_path=ARTIFACTS_PATH):
+        if col_name is None:
+            path = os.path.join(artifacts_path, "labels.txt")
+            new_labels_list = []
+            with open(path, "rb") as f:
+                for line in f:
+                    new_labels_list.append(line)
+
+            if len(new_labels_list) == 1:  # If it reads only one line which is one label
+                labels = new_labels_list[0].decode().replace("\n", "")
+            else:
+                labels = new_labels_list.decode().replace("\n", "")
+        path = os.path.join(artifacts_path, labels+".pkl")
+        encoder = pickle.load(open(path, "rb"))
+        return encoder
+
+    @classmethod
     def Inverse_Encoding(self, data, col_name, artifacts_path):
         path = os.path.join(artifacts_path, col_name+".pkl")
         encoder = pickle.load(open(path, "rb"))

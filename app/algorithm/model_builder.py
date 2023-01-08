@@ -3,6 +3,7 @@ logging.disable(logging.WARNING)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import os
+import random
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Bidirectional, GRU, Embedding, Input, GlobalMaxPooling1D
 from tensorflow.keras.metrics import Recall, Precision
@@ -12,8 +13,12 @@ from algorithm.preprocess.preprocess import prep_TEXT
 
 MODEL_NAME = config.MODEL_NAME
 MODEL_SAVE_PATH = config.MODEL_SAVE_PATH
-seed = config.RAND_SEED
-tf.random.set_seed(seed)
+
+seed_value = config.RAND_SEED
+os.environ['PYTHONHASHSEED']=str(seed_value)
+random.seed(seed_value)
+np.random.seed(seed_value)
+tf.random.set_seed(seed_value)
 
 
 class RNN_pretrained_embed():

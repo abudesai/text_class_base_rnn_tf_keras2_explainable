@@ -1,25 +1,25 @@
 # major part of code sourced from aws sagemaker example:
 # https://github.com/aws/amazon-sagemaker-examples/blob/main/advanced_functionality/scikit_bring_your_own/container/decision_trees/predictor.py
 
-import io
 import pandas as pd
 import flask
-from flask import request, jsonify
 import traceback
+import json
 import sys
 import os
 import warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # disable cuda, no need for gpu for inference
+warnings.filterwarnings('ignore')
+
 from algorithm.predictions_handler import Predictor
 from algorithm.model_builder import load_model
 import config
-from v.model_explain.exp_lime import explainer
-import json
+from algorithm.model_explain.exp_lime import explainer
 
 
 MODEL_NAME = config.MODEL_NAME
 failure_path = config.FAILURE_PATH
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
-warnings.filterwarnings('ignore')
 
 
 model = load_model()
@@ -58,15 +58,13 @@ def infer():
 
     # Do the prediction
     try:
-        predector = Predictor(model=model)
+        predictor = Predictor(model=model)
         predictions = predictor.predict_get_results_json(data=data)
-        # Convert from dataframe to CSV
-        out = io.StringIO()
-        predictions.to_csv(out, index=False)
-        result = out.getvalue()
-
-        return flask.Response(response=result, status=200, mimetype="text/csv")
-
+        return flask.Response(
+            response=predictions,
+            status=200,
+            mimetype="application/json",
+        )
     except Exception as err:
         # Write out an error file. This will be returned as the failureReason to the client.
         trc = traceback.format_exc()
