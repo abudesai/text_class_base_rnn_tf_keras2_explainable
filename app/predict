@@ -1,0 +1,40 @@
+#! /usr/bin/env python
+import logging, os
+logging.disable(logging.WARNING)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+import sys
+import config
+import traceback
+import pandas as pd
+from algorithm.predictions_handler import Predictor
+import os
+import tensorflow as tf
+ 
+test_data_path = config.TEST_DATA_PATH
+failure_path = config.FAILURE_PATH
+seed = config.RAND_SEED
+tf.random.set_seed(seed)
+
+def predict():    
+    try:        
+        print('---------------------Started predictions---------------------.')    
+        test_data = pd.read_csv(test_data_path)
+        predictor = Predictor(test_data)
+        predictor.save_predictions()
+        print('---------------------Predictions finished successfully---------------------.')
+    except Exception as e:
+        print("error!")
+        # Write out an error file. This will be returned as the failureReason to the client.
+        failure_file_path = os.path.join(failure_path,"predict_failure.txt")
+        trc = traceback.format_exc()
+        with open(failure_file_path, 'w') as s:
+            s.write('Exception during prediction: ' + str(e) + '\n' + trc)
+        # Printing this causes the exception to be in the prediction job logs, as well.
+        print('Exception during prediction: ' + str(e) + '\n' + trc, file=sys.stderr)
+        # A non-zero exit code causes the prediction job to be marked as Failed.
+        sys.exit(255)
+
+
+if __name__ == '__main__':
+    predict()
